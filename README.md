@@ -71,6 +71,15 @@ This is our "Transition From State".
 
 In this particular example, we don't need the context that we transitioned from `Index` since we can always safely add the `class "title-element"` to give the `view-transition-name: title-element` to the heading element. But in the case where we do the reverse transition (from (Detail "1"), to Index), we need to use the "Transition From State".
 
+## Integrations
+
+This could be integrated into Elm in a more core way, or more likely into related Elm meta-frameworks like `elm-spa`, `elm-land`, `elm-pages`. I'm planning to integrate this into a new release of `elm-pages`.
+
+## Resources
+
+- [Related `elm/browser` issue #131](https://github.com/elm/browser/issues/131)
+- [Discussion thread for supporting transition animations in `elm-pages`](https://github.com/dillonkearns/elm-pages/issues/225)
+
 ## Running this repo
 
 Proof of concept for the Chrome View Transitions API in Elm.
