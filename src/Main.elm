@@ -2,7 +2,7 @@ port module Main exposing (main)
 
 import Browser
 import Html exposing (..)
-import Html.Attributes exposing (href)
+import Html.Attributes exposing (class, href)
 import Html.Events exposing (preventDefaultOn)
 import Json.Decode as D
 import Url
@@ -11,20 +11,38 @@ import Url
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
+        TransitionStart maybeRoute ->
+            ( { model
+                | transition = maybeRoute |> Maybe.map To
+              }
+            , Cmd.none
+            )
+
         UrlChanged maybeRoute ->
             case maybeRoute of
                 Just route ->
-                    ( { model | route = route }, Cmd.none )
+                    ( { model
+                        | route = route
+                        , transition = Just (From model.route)
+                      }
+                    , Cmd.none
+                    )
 
                 Nothing ->
                     ( model, Cmd.none )
 
         PushUrl url ->
-            ( model, pushUrl url )
+            ( { model | transition = Nothing }, pushUrl url )
 
 
+type Transition
+    = To Route
+    | From Route
+
+
+navbar : Html Msg
 navbar =
-    nav []
+    nav [ class "main-header" ]
         [ link (PushUrl "/")
             [ href "/" ]
             [ text "Home"
@@ -34,28 +52,62 @@ navbar =
 
 view : Model -> Html Msg
 view model =
+    let
+        isToOrFrom route =
+            model.transition == Just (From route) || (model.transition == Just (To route))
+    in
     div []
         [ navbar
         , case model.route of
             Index ->
-                div []
-                    ([ 1, 2, 3 ]
+                div
+                    []
+                    ([ "1", "2", "3" ]
                         |> List.map
                             (\index ->
-                                h2 []
-                                    [ link (PushUrl ("/" ++ String.fromInt index))
-                                        [ href ("/" ++ String.fromInt index)
-                                        ]
-                                        [ text <| "Item " ++ String.fromInt index
-                                        ]
+                                let
+                                    asterisk =
+                                        if isToOrFrom (Detail index) then
+                                            --"*"
+                                            ""
+
+                                        else
+                                            ""
+                                in
+                                h2
+                                    (if isToOrFrom (Detail index) then
+                                        [ transitionName Title ]
+
+                                     else
+                                        []
+                                    )
+                                    [ link (PushUrl ("/" ++ index))
+                                        [ href ("/" ++ index) ]
+                                        [ text <| "Item " ++ index ++ asterisk ]
                                     ]
                             )
                     )
 
             Detail id ->
                 div []
-                    [ h1 [] [ text <| "Item " ++ id ] ]
+                    [ h2
+                        [ transitionName Title ]
+                        [ text <| "Item " ++ id ]
+                    ]
         ]
+
+
+type TransitionElement
+    = Title
+
+
+transitionName : TransitionElement -> Attribute msg
+transitionName element =
+    class
+        (case element of
+            Title ->
+                "title-element"
+        )
 
 
 main : Program String Model Msg
@@ -70,6 +122,7 @@ main =
 
 type Msg
     = UrlChanged (Maybe Route)
+    | TransitionStart (Maybe Route)
     | PushUrl String
 
 
@@ -80,12 +133,14 @@ type Route
 
 type alias Model =
     { route : Route
+    , transition : Maybe Transition
     }
 
 
 init : String -> ( Model, Cmd Msg )
 init locationHref =
     ( { route = locationHref |> locationHrefToRoute |> Maybe.withDefault Index
+      , transition = Nothing
       }
     , Cmd.none
     )
@@ -97,8 +152,14 @@ link href attrs children =
 
 
 subscriptions : Model -> Sub Msg
-subscriptions model =
-    onUrlChange (locationHrefToRoute >> UrlChanged)
+subscriptions _ =
+    Sub.batch
+        [ onTransitionStart (locationHrefToRoute >> TransitionStart)
+        , onUrlChange (locationHrefToRoute >> UrlChanged)
+        ]
+
+
+port onTransitionStart : (String -> msg) -> Sub msg
 
 
 port onUrlChange : (String -> msg) -> Sub msg
@@ -107,19 +168,22 @@ port onUrlChange : (String -> msg) -> Sub msg
 port pushUrl : String -> Cmd msg
 
 
-locationHrefToRoute : String -> Maybe Route
-locationHrefToRoute locationHref =
-    case Url.fromString locationHref of
-        Nothing ->
+pathToRoute : String -> Maybe Route
+pathToRoute path =
+    case path |> String.split "/" |> List.filter (not << String.isEmpty) of
+        [] ->
+            Just Index
+
+        [ id ] ->
+            Just (Detail id)
+
+        _ ->
             Nothing
 
-        Just url ->
-            case url.path |> String.split "/" |> List.filter (not << String.isEmpty) of
-                [] ->
-                    Just Index
 
-                [ id ] ->
-                    Just (Detail id)
-
-                _ ->
-                    Nothing
+locationHrefToRoute : String -> Maybe Route
+locationHrefToRoute locationHref =
+    locationHref
+        |> Url.fromString
+        |> Maybe.andThen
+            (.path >> pathToRoute)
