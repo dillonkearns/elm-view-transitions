@@ -26,7 +26,6 @@ a {
 .title-element {
   view-transition-name: title-element;
   contain: layout;
-  color: red !important;
 }
 
 @keyframes fade-in {
