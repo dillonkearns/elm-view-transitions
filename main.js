@@ -1,13 +1,21 @@
 import "./style.css";
 import { Elm } from "./src/Main.elm";
 
-if (process.env.NODE_ENV === "development") {
-    const ElmDebugTransform = await import("elm-debug-transformer")
+const app = Elm.Main.init({
+    flags: location.href,
+    node: document.querySelector("#app div")
+});
 
-    ElmDebugTransform.register({
-        simple_mode: true
-    })
-}
+// Inform app of browser navigation (the BACK and FORWARD buttons)
+window.addEventListener('popstate', function (event) {
+    console.log('onUrlChange!');
+    app.ports.onUrlChange.send(location.href);
 
-const root = document.querySelector("#app div");
-const app = Elm.Main.init({ node: root });
+});
+
+// Change the URL upon request, inform app of the change.
+app.ports.pushUrl.subscribe(function(url) {
+    console.log('onUrlChange!', url);
+    history.pushState({}, '', url);
+    app.ports.onUrlChange.send(location.href);
+});
