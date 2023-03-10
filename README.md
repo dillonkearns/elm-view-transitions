@@ -1,5 +1,7 @@
 # View Transitions API in Elm
 
+https://user-images.githubusercontent.com/1384166/224448950-5c90bf7f-9376-4a76-abd1-fa27554ac234.mp4
+
 ## Background
 
 [View Transitions API docs](https://developer.chrome.com/docs/web-platform/view-transitions/)
