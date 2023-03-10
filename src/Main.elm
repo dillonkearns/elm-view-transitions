@@ -23,27 +23,39 @@ update msg model =
             ( model, pushUrl url )
 
 
+navbar =
+    nav []
+        [ link (PushUrl "/")
+            [ href "/" ]
+            [ text "Home"
+            ]
+        ]
+
+
 view : Model -> Html Msg
 view model =
-    case model.route of
-        Index ->
-            div []
-                ([ 1, 2, 3 ]
-                    |> List.map
-                        (\index ->
-                            h2 []
-                                [ link (PushUrl ("/" ++ String.fromInt index))
-                                    [ href ("/" ++ String.fromInt index)
+    div []
+        [ navbar
+        , case model.route of
+            Index ->
+                div []
+                    ([ 1, 2, 3 ]
+                        |> List.map
+                            (\index ->
+                                h2 []
+                                    [ link (PushUrl ("/" ++ String.fromInt index))
+                                        [ href ("/" ++ String.fromInt index)
+                                        ]
+                                        [ text <| "Item " ++ String.fromInt index
+                                        ]
                                     ]
-                                    [ text <| "Item " ++ String.fromInt index
-                                    ]
-                                ]
-                        )
-                )
+                            )
+                    )
 
-        Detail id ->
-            div []
-                [ h1 [] [ text <| "Item " ++ id ] ]
+            Detail id ->
+                div []
+                    [ h1 [] [ text <| "Item " ++ id ] ]
+        ]
 
 
 main : Program String Model Msg
