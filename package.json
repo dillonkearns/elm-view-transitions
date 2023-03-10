@@ -1,7 +1,7 @@
 {
-  "name": "vite-elm-template",
-  "author": "Lindsay Wardell",
-  "description": "A default template for building Elm applications using Vite.",
+  "name": "elm-view-transitions-poc",
+  "author": "Dillon Kearns",
+  "description": "Proof of concept for the Chrome View Transitions API in Elm.",
   "version": "1.7.0",
   "license": "MIT",
   "scripts": {
