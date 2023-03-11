@@ -1,6 +1,12 @@
 import "./style.css";
 import { Elm } from "./src/Main.elm";
 
+if (!document.startViewTransition) {
+  alert(
+    "Your browser doesn't support the View Transitions API! Only Chrome supports View Transitions right now."
+  );
+}
+
 const app = Elm.Main.init({
   flags: location.href,
   node: document.querySelector("#app div"),
